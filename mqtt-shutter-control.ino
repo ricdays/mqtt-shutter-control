@@ -1,7 +1,8 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
-#include "WifiConfig.h"
+#include <ESP8266Timer.h>
+#include "Config.h"
 
 #include "StepperController.hpp"
 #include "OTA.hpp"
@@ -20,6 +21,20 @@ StepperController motor1(MOTOR1_PUL_PIN, MOTOR1_DIR_PIN, MOTOR1_ENA_PIN);
 
 StepperController* motors[] = { &motor1 };
 int numMotors = sizeof(motors) / sizeof(StepperController*);
+
+// Select a Timer Clock
+#define USING_TIM_DIV1                false           // for shortest and most accurate timer
+#define USING_TIM_DIV16               false           // for medium time and medium accurate timer
+#define USING_TIM_DIV256              true            // for longest timer but least accurate. Default
+
+// Init ESP8266 only and only Timer 1
+ESP8266Timer ITimer;
+
+void IRAM_ATTR TimerHandler()
+{
+    for (int i = 0; i < numMotors; ++i)
+        motors[i]->pulseUpdate();
+}
 
 unsigned long lastWifiChecked = 0;
 void checkWifiConnection()
@@ -62,8 +77,13 @@ void setup() {
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
 
-
     motor1.setup();
+
+    // Configure interrupt timer - interval in microsecs
+    if (ITimer.attachInterruptInterval(500, TimerHandler))
+        Serial.print(F("Starting  ITimer OK"));
+    else
+        Serial.println(F("Can't set ITimer correctly. Select another freq. or interval"));
 }
 
 unsigned long lastKeepAlive = millis();
@@ -73,5 +93,7 @@ void loop() {
     checkWifiConnection();
     OTA_loopStep();
     MQTT_loopStep();
-    motor1.refresh();
+
+    for (int i = 0; i < numMotors; ++i)
+        motors[i]->refresh();
 }

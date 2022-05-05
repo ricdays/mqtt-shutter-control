@@ -16,6 +16,9 @@ public:
     // Must be called periodically to update the output
     void refresh();
 
+    // Must be called periodically (ideally fixed rate) to update the pulse output
+    void pulseUpdate();
+
     void setDirection(bool up);
 
     void enableFor(unsigned long milliseconds);

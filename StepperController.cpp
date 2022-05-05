@@ -68,9 +68,13 @@ void StepperController::refresh()
     }
 
     digitalWrite(_enablePin, _enabled ? LOW : HIGH);
+}
+
+void StepperController::pulseUpdate()
+{
     if (!_enabled)
         return;
-
+    
     if (!_pulsing)
     {
         digitalWrite(_directionPin, _directionUp ? HIGH : LOW);
