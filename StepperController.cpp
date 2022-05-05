@@ -17,6 +17,7 @@ StepperController::StepperController(int pulsePin, int directionPin, int enableP
     , _enabled(false)
 {
     _lastUpdate = micros();
+    _disableMillis = 0;
 }
 
 void StepperController::setDirection(bool up)
@@ -27,6 +28,16 @@ void StepperController::setDirection(bool up)
 void StepperController::enable(bool enable)
 {
     _enabled = enable;
+    _disableMillis = 0;
+}
+
+void StepperController::enableFor(unsigned long milliseconds)
+{
+    _enabled = true;
+    _disableMillis = millis() + milliseconds;
+
+    //Serial.print("Enabled for (ms) ");
+    //Serial.println(milliseconds);
 }
 
 bool StepperController::isEnabled()
@@ -48,6 +59,13 @@ void StepperController::refresh()
         return;
 
     _lastUpdate = currentTime;
+
+    if (_disableMillis > 0 && millis() > _disableMillis)
+    {
+        //Serial.println("AUTO DISABLE !!");
+        _disableMillis = 0;
+        enable(false);
+    }
 
     digitalWrite(_enablePin, _enabled ? LOW : HIGH);
     if (!_enabled)

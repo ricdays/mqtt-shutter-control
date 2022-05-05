@@ -18,6 +18,8 @@ public:
 
     void setDirection(bool up);
 
+    void enableFor(unsigned long milliseconds);
+
     void enable(bool enable);
     bool isEnabled();
 
@@ -28,6 +30,7 @@ private:
 
     unsigned long _lastUpdate;
     unsigned long _updatePeriodUs;
+    unsigned long _disableMillis;
 
     bool _directionUp;
     bool _pulsing;
